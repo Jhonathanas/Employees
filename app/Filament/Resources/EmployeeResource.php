@@ -20,13 +20,14 @@ use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\EmployeeResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\EmployeeResource\RelationManagers;
+
 
 class EmployeeResource extends Resource
 {
     protected static ?string $model = Employee::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Office Managment';
 
     public static function form(Form $form): Form
     {
@@ -53,17 +54,24 @@ class EmployeeResource extends Resource
                                     }
                                     return $country->state->pluck('name', 'id');
                                 }
-                            )
-                            ->afterStateUpdated(fn (callable $set) => $set('city_id', null)),
+                            ),
+                            // ->afterStateUpdated(fn (callable $set) => $set('city_id', null)),
                         Select::make('city_id')
                             ->label('City')
                             ->options(
+                                // function (callable $get) {
+                                //     $state = State::find($get('state_id'));
+                                //     if (!$state) {
+                                //         return City::all()->pluck('name', 'id');
+                                //     }
+                                //     return $state->cities->pluck('name', 'id');
+                                // }
                                 function (callable $get) {
                                     $state = State::find($get('state_id'));
                                     if (!$state) {
                                         return City::all()->pluck('name', 'id');
                                     }
-                                    return $state->City->pluck('name', 'id');
+                                    return $state->city->pluck('name', 'id');
                                 }
                             ),
                         TextInput::make('zip_code'),
@@ -93,6 +101,7 @@ class EmployeeResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -105,6 +114,12 @@ class EmployeeResource extends Resource
     {
         return [
             //
+        ];
+    }
+
+    public static function getWidgets(): array{
+        return [
+            EmployeeResource\Widgets\EmployeeOverview::class,
         ];
     }
 
